@@ -1,1 +1,264 @@
-This page is currently being worked on! More to come soon! I have created a 3D simulink simulation for a small-sat reaction wheel attitude control system. This simulates the full attitude control (6-DOF) for a satellite in orbit. Implements control and signal processing from an on-board IMU and star sensor with simulated measurement noise.
+<!-- simulink-mini-stack/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulink GN&C Mini-Stack | Jack Huston</title>
+
+  <!-- Project-specific styling -->
+  <link rel="stylesheet" href="./styles.css" />
+
+  <link rel="icon" type="image/x-icon" href="../favicon.ico" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+  <!-- Top Nav -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a class="nav-brand" href="https://jack-huston.github.io/">
+        <i data-lucide="satellite" class="icon-nav"></i>
+        <span>Jack Huston</span>
+      </a>
+
+      <div class="nav-links">
+        <a class="nav-link" href="https://jack-huston.github.io/#projects">
+          <i data-lucide="arrow-left" class="icon-inline"></i>
+          Back to Portfolio
+        </a>
+        <a class="nav-link" href="https://jack-huston.github.io/#contact">
+          <i data-lucide="mail" class="icon-inline"></i>
+          Contact
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page">
+    <!-- Hero -->
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="hero-top">
+          <h1 class="title">Simulink GN&amp;C Mini-Stack</h1>
+          <div class="badges">
+            <span class="badge badge-wip">
+              <i data-lucide="wrench" class="icon-badge"></i>
+              In progress
+            </span>
+            <span class="badge">
+              <i data-lucide="box" class="icon-badge"></i>
+              Simulink
+            </span>
+            <span class="badge">
+              <i data-lucide="compass" class="icon-badge"></i>
+              Attitude Control
+            </span>
+            <span class="badge">
+              <i data-lucide="activity" class="icon-badge"></i>
+              Monte Carlo-ready
+            </span>
+          </div>
+        </div>
+
+        <p class="subtitle">
+          A 3D Simulink simulation of a small-satellite reaction wheel attitude control system (6-DOF),
+          including sensor models (IMU + star sensor) with noise, onboard signal processing, and
+          closed-loop control.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#overview">
+            <i data-lucide="rocket" class="icon-inline"></i>
+            Project Overview
+          </a>
+          <a class="btn btn-ghost" href="#roadmap">
+            <i data-lucide="map" class="icon-inline"></i>
+            Roadmap
+          </a>
+        </div>
+
+        <div class="callout">
+          <i data-lucide="info" class="callout-icon"></i>
+          <div class="callout-content">
+            <div class="callout-title">Temporary landing page</div>
+            <div class="callout-text">
+              This page will expand with diagrams, plots, and a reproducible run guide as I finish packaging
+              the model and results for public release.
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <section id="overview" class="section">
+      <h2 class="section-title">Overview</h2>
+
+      <div class="grid">
+        <article class="card">
+          <div class="card-header">
+            <i data-lucide="target" class="card-icon"></i>
+            <h3 class="card-title">Goal</h3>
+          </div>
+          <p class="card-text">
+            Demonstrate a GN&amp;C-relevant Simulink workflow: plant dynamics + sensors + estimation/signal processing +
+            controller + performance verification.
+          </p>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <i data-lucide="cpu" class="card-icon"></i>
+            <h3 class="card-title">System</h3>
+          </div>
+          <ul class="card-list">
+            <li>6-DOF small-sat attitude dynamics in orbit (3D visualization-driven workflow)</li>
+            <li>Reaction wheel actuator model with saturation / rate limits (as applicable)</li>
+            <li>Disturbance &amp; noise injection for robustness testing</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <i data-lucide="radar" class="card-icon"></i>
+            <h3 class="card-title">Sensors</h3>
+          </div>
+          <ul class="card-list">
+            <li>IMU model (gyro/accel behavior as implemented) with configurable noise</li>
+            <li>Star sensor measurement model with noise and update-rate effects</li>
+            <li>Signal conditioning / processing blocks to emulate onboard workflows</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">What’s implemented so far</h2>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <i data-lucide="check-circle-2" class="card-icon"></i>
+            <h3 class="card-title">Core loop</h3>
+          </div>
+          <ul class="card-list">
+            <li>Closed-loop attitude control with reaction wheel actuation</li>
+            <li>Sensor noise injection (IMU + star sensor)</li>
+            <li>Onboard signal processing blocks feeding the controller</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <i data-lucide="bar-chart-3" class="card-icon"></i>
+            <h3 class="card-title">Verification (initial)</h3>
+          </div>
+          <ul class="card-list">
+            <li>Baseline tracking performance runs</li>
+            <li>Noise sensitivity runs (sensor noise sweep)</li>
+            <li>Disturbance rejection runs (representative disturbance cases)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">How I’m validating it</h2>
+      <div class="card">
+        <p class="card-text">
+          This project is intentionally built to support verification and robustness evaluation:
+          repeatable scenarios, parameterized noise/disturbances, and clear performance metrics.
+        </p>
+
+        <div class="pill-row">
+          <span class="pill"><i data-lucide="repeat" class="icon-inline"></i> Repeatable scenarios</span>
+          <span class="pill"><i data-lucide="sliders" class="icon-inline"></i> Noise/disturbance sweeps</span>
+          <span class="pill"><i data-lucide="shield-check" class="icon-inline"></i> V&amp;V mindset</span>
+          <span class="pill"><i data-lucide="dice-5" class="icon-inline"></i> Monte Carlo runs</span>
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">Tracking error</div>
+            <div class="metric-value">Attitude error vs. time</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Control effort</div>
+            <div class="metric-value">Wheel torque / saturation</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Robustness</div>
+            <div class="metric-value">Noise/disturbance sensitivity</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="roadmap" class="section">
+      <h2 class="section-title">Roadmap</h2>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">1) Publish model architecture</div>
+            <div class="timeline-text">Block diagram, assumptions, and subsystem definitions.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">2) Add performance plots + metrics</div>
+            <div class="timeline-text">Tracking error, control effort, robustness sweeps.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">3) Package reproducible runs</div>
+            <div class="timeline-text">Clear “How to run” instructions and parameterized scenarios.</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">4) Monte Carlo verification report</div>
+            <div class="timeline-text">Summary table + plots showing robustness and margin.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <div class="footer-title">Simulink GN&amp;C Mini-Stack</div>
+          <div class="footer-sub">
+            Updates coming soon — diagrams, results, and reproducible run instructions.
+          </div>
+        </div>
+
+        <div class="footer-actions">
+          <a class="btn btn-ghost" href="https://jack-huston.github.io/#projects">
+            <i data-lucide="arrow-left" class="icon-inline"></i>
+            Back
+          </a>
+          <a class="btn btn-primary" href="mailto:jackthuston1@gmail.com">
+            <i data-lucide="send" class="icon-inline"></i>
+            Email
+          </a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    // Lucide icon init
+    if (window.lucide) lucide.createIcons();
+  </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+%Initializes the base parameters for the simulation
+%Assign Timing Variables
+Ts_base = 0.01; %[sec] base model step size (100 Hz)
+Ts_gyro = 0.01; %[sec] gyro sample rate (100 Hz)
+Ts_star = 0.2; %[sec] star tracker sample rate (5 Hz)
+t_end = 120; %[sec] Simulation end time
+
+%Random Number Generator Seeds
+rng_seed = 1;
+rng(rng_seed, "twister");
+
+%Define Rigid Body Inertia
+J = diag([0.02, 0.02, 0.01]); %[kg*m^2] Spacecraft Inertia
+Jinv = inv(J);
+
+%Define Initial Conditions
+q0 = [1; 0; 0; 0]; %Unit quaternion
+q0 = q0 / norm(q0);
+w0_deg_s = [-53; +78; +82]; %[deg/s]
+w0 = deg2rad(w0_deg_s); %[rad/s]
+
+%Define Initial Orbital Position / Velocity
+p_0 = [0; 6878137; 0]; %[km] initial orbital position
+v_0 = [-7612.608; 0; 0]; %[km/s] initial orbital velocity
+
+%Define Actuator Torque Parameters
+tau_wheel_max = 0.01; %[N*m] per-axis torque limit
+J_wheel = 2e-4 * ones(3, 1); %[kg*m^2] rotor moment of inertia (x, y, z)
+Omega_wheel_0 = [0; 0; 0]; %[rad/s] initial wheel speeds (x, y, z)
+Omega_wheel_max = 6000 * (2 * pi / 60);%[rad/s] maximum wheel speeds (x, y, z)
+
+%Detumble Controller Gain Settings
+T_settling = 4; %[Sec] 2% Settling Time
+zeta = 0.9; %Damping Ratio zeta < 1 = underdamped, zeta = 1 = critically damped, zeta > 1 = overdamped
+Kd = J * (8 / T_settling); %N*m/(rad/s) - Derivative Gains
+Kp = J * (4 / (zeta * T_settling))^2; %N*m - Proportional Gains
+
+%Disturbance Torque
+tau_dist_const = [1e-5; -2e-5; 1e-5]; %[N*m]
+
+%Set Gyro Noise / Bias Settings
+gyro_sigma = deg2rad(0.02); %[rad/s] 1-sigma white noise (0.02)
+gyro_bias_sigma = deg2rad(0.005); %[rad/s] initial bias std (0.005)
+gyro_bias_rw = deg2rad(0.0002); %[rad/sqrt(s)] bias random walk strength (0.0002)
+gyro_bias0 = gyro_bias_sigma * randn(3,1);   % 3x1
+
+%Set Start Tracker Noise
+star_sigma_deg = 0.01; %[deg] 1-sigma small-angle noise (0.01);
+star_sigma = deg2rad(star_sigma_deg);
+
+%% Check Inputs to ensure compliance with expected variable setup
+
+%Timing Checks
+assert(isscalar(Ts_base) && Ts_base > 0 && isfinite(Ts_base), "Ts_base must be a positive finite scalar.");
+assert(isscalar(Ts_gyro) && Ts_gyro > 0 && isfinite(Ts_gyro), "Ts_gyro must be a positive finite scalar.");
+assert(isscalar(Ts_star) && Ts_star > 0 && isfinite(Ts_star), "Ts_star must be a positive finite scalar.");
+assert(isscalar(t_end) && t_end > Ts_base && isfinite(t_end), "t_end must be > Ts_base and finite.");
+
+tol = 1e-12;
+assert(abs(Ts_gyro/Ts_base - round(Ts_gyro/Ts_base)) < tol, "Ts_gyro must be an integer multiple of Ts_base.");
+assert(abs(Ts_star/Ts_base - round(Ts_star/Ts_base)) < tol, "Ts_star must be an integer multiple of Ts_base.");
+
+%Dimension / Type Check
+assert(isvector(q0) && numel(q0) == 4 && all(isfinite(q0)), "q0 must be a 4x1 finite vector.");
+assert(isvector(w0) && numel(w0) == 3 && all(isfinite(w0)), "w0 must be a 3x1 finite vector.");
+assert(isvector(w0_deg_s) && numel(w0_deg_s) == 3 && all(isfinite(w0_deg_s)), "w0_deg_s must be a 3x1 finite vector.");
+
+%Quaternion Initialization Check
+assert(abs(norm(q0) - 1) < 1e-9, "q0 must be unit length.");
+assert(norm(q0) > 0.9, "q0 norm too small; check quaternion initialization.");
+
+%Inertia Matrix Check
+assert(isequal(size(J), [3 3]) && all(isfinite(J(:))), "J must be 3x3 and finite.");
+assert(norm(J - J.', 'fro') < 1e-12, "J must be symmetric.");
+eigJ = eig((J + J.')/2);
+assert(all(eigJ > 0), "J must be positive definite (all eigenvalues > 0).");
+assert(isvector(J_wheel) && numel(J_wheel)==3 && all(isfinite(J_wheel)) && all(J_wheel>0), "Jw must be a 3x1 vector of positive finite values [kg*m^2].");
+assert(isvector(Omega_wheel_0) && numel(Omega_wheel_0)==3 && all(isfinite(Omega_wheel_0)), "Omega0 must be a 3x1 finite vector [rad/s].");
+assert(isscalar(Omega_wheel_max) && isfinite(Omega_wheel_max) && Omega_wheel_max>0, "Omega_max must be a positive finite scalar [rad/s].");
+
+%Inverse Consistency Check
+Ierr = norm(J*Jinv - eye(3), 'fro');
+assert(Ierr < 1e-10, "Jinv does not invert J well; J may be singular/ill-conditioned.");
+
+%Actuator / Controller Check
+assert(isscalar(tau_wheel_max) && tau_wheel_max > 0 && isfinite(tau_wheel_max), "tau_max must be a positive finite scalar.");
+assert(isequal(size(Kd), [3 3]) && all(isfinite(Kd(:))), "Kd must be 3x3 and finite.");
+assert(norm(Kd - Kd.', 'fro') < 1e-12, "Kd should be symmetric (use diagonal or symmetric gains).");
+assert(all(diag(Kd) > 0), "Kd diagonal entries must be positive for detumble damping.");
+
+%Disturbance Torque Check
+assert(isvector(tau_dist_const) && numel(tau_dist_const) == 3 && all(isfinite(tau_dist_const)), "tau_dist_const must be a 3x1 finite vector.");
+
+%Sensor Noise / Bias Check
+assert(isscalar(gyro_sigma) && gyro_sigma >= 0 && isfinite(gyro_sigma), "gyro_sigma must be >=0 and finite.");
+assert(isscalar(gyro_bias_sigma) && gyro_bias_sigma >= 0 && isfinite(gyro_bias_sigma), "gyro_bias_sigma must be >=0 and finite.");
+assert(isscalar(gyro_bias_rw) && gyro_bias_rw >= 0 && isfinite(gyro_bias_rw), "gyro_bias_rw must be >=0 and finite.");
+
+assert(isscalar(star_sigma_deg) && star_sigma_deg >= 0 && isfinite(star_sigma_deg), "star_sigma_deg must be >=0 and finite.");
+assert(isscalar(star_sigma) && star_sigma >= 0 && isfinite(star_sigma), "star_sigma must be >=0 and finite.");
+
+disp("Parameter / Initial Condition checks passed.");

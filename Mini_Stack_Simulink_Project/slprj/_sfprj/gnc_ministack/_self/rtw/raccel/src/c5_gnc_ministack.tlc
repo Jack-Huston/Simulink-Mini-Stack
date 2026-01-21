@@ -1,0 +1,106 @@
+%implements "chartSource" "C"
+%function ChartConfig(block, system) void
+  %createrecord chartConfiguration { ...
+          executeAtInitialization  0 ...
+  }
+  %return chartConfiguration
+%endfunction
+%function ChartDataMap(block, system) void
+  %createrecord ChartDataElements {\
+    NumChartData   12 \
+    ChartDataDefaults {\
+      RecordType   "ChartData"\
+      Dimensions   []\
+      IsTestPoint  0\
+    }\
+    ChartData {\
+      Name         "sfEvent"\
+      Description  "ActiveChartEvent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  ""\
+    }\
+    ChartData {\
+      Name         "doneDoubleBufferReInit"\
+      Description  "DoubleBufferInitCheck"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  ""\
+    }\
+    ChartData {\
+      Name         "q"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "gnc_ministack:5:30:1120-1121"\
+      Dimensions   [4]\
+    }\
+    ChartData {\
+      Name         "q_not_empty"\
+      Description  "EmlPersistentSentinel"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "gnc_ministack:5:30:1120-1121"\
+    }\
+    ChartData {\
+      Name         "b"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "gnc_ministack:5:30:1122-1123"\
+      Dimensions   [3]\
+    }\
+    ChartData {\
+      Name         "b_not_empty"\
+      Description  "EmlPersistentSentinel"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "gnc_ministack:5:30:1122-1123"\
+    }\
+    ChartData {\
+      Name         "P"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "gnc_ministack:5:30:1124-1125"\
+      Dimensions   [6,6]\
+    }\
+    ChartData {\
+      Name         "P_not_empty"\
+      Description  "EmlPersistentSentinel"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "gnc_ministack:5:30:1124-1125"\
+    }\
+    ChartData {\
+      Name         "is_init"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "gnc_ministack:5:30:1126-1133"\
+    }\
+    ChartData {\
+      Name         "is_init_not_empty"\
+      Description  "EmlPersistentSentinel"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "gnc_ministack:5:30:1126-1133"\
+    }\
+    ChartData {\
+      Name         "q_prev"\
+      Description  "EmlPersistent"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "gnc_ministack:5:30:1134-1140"\
+      Dimensions   [4]\
+    }\
+    ChartData {\
+      Name         "q_prev_not_empty"\
+      Description  "EmlPersistentSentinel"\
+      SFName       ""\
+      Path         ""\
+      SrcLocation  "gnc_ministack:5:30:1134-1140"\
+    }\
+  }
+  %return ChartDataElements
+%endfunction

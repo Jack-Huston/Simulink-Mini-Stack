@@ -102,7 +102,7 @@
           <span>Jump to Demos</span>
         </a>
         <a href="#technical" class="btn-secondary">See Architecture</a>
-        <a href="#technical" class="btn-secondary">Github Repo</a>
+        <a href="https://github.com/Jack-Huston/Simulink-Mini-Stack/tree/main/Mini_Stack_Simulink_Project" class="btn-secondary">Github Repo</a>
       </div>
     </div>
   </section>
@@ -356,7 +356,7 @@
         </p>
 
         <figure class="figure figure-wide">
-          <img src="images/gnc/architecture_overview.png" alt="Top-level architecture diagram for the Simulink GN&amp;C mini-stack" loading="lazy">
+          <img src="images/architecture_overview.png" alt="Top-level architecture diagram for the Simulink GN&amp;C mini-stack" loading="lazy">
           <figcaption class="figure-caption">End-to-end data flow. Sensors, MEKF, control law, reaction wheels, rigid-body dynamics.</figcaption>
         </figure>
       </div>
@@ -407,31 +407,34 @@
               <span class="tab-text">Orbit_Propagator</span>
             </label>
           </aside>
-
           <section class="tab-panels">
             <article class="tab-panel" id="panel-plant">
               <div class="panel-head">
-                <h4>Plant_Attitude</h4>
+                <h4>Plant</h4>
                 <p>
-                  Rigid-body rotational dynamics and quaternion kinematics. This block integrates attitude and rates under applied wheel torque and disturbance torque.
+                  This subsystem is the attitude “physics” and supports rigid-body rotational dynamics with scalar-first quaternion kinematics. It integrates the spacecraft attitude and body rates while applying wheel torque and any external disturbance torque.
                 </p>
               </div>
               <figure class="figure figure-tight figure-wide">
-                <img src="images/gnc/plant_attitude.png" alt="Simulink subsystem diagram for Plant_Attitude" loading="lazy">
-                <figcaption class="figure-caption">Rigid-body dynamics: \(J\dot{\omega} + \omega \times (J\omega) = \tau\). Quaternion kinematics use scalar-first convention.</figcaption>
+                <img src="images/plant_attitude.png" alt="Simulink subsystem diagram for Plant_Attitude" loading="lazy">
+                <figcaption class="figure-caption">
+                  Rigid-body dynamics: \(J\dot{\omega} + \omega \times (J\omega) = \tau\). Quaternion kinematics use a scalar-first convention.
+                </figcaption>
               </figure>
             </article>
 
             <article class="tab-panel" id="panel-actuator">
               <div class="panel-head">
-                <h4>Actuator_RW</h4>
+                <h4>Actuator RW</h4>
                 <p>
-                  Wheel torque commands map to wheel acceleration. Torque saturates per axis. Wheel speed integrates with inertia and enforces a speed ceiling.
+                  Reaction wheel torque commands are converted into wheel acceleration, with per-axis torque saturation. Wheel speed is integrated using the rotor inertia and clamped to a maximum speed so the model behaves like a "real" actuator.
                 </p>
               </div>
               <figure class="figure figure-tight figure-wide">
-                <img src="images/gnc/actuator_rw.png" alt="Simulink subsystem diagram for Actuator_RW" loading="lazy">
-                <figcaption class="figure-caption">Actuation limits follow the initialization: \(\tau_{\max}=0.01\) N m and \(\Omega_{\max}=6000\) rpm.</figcaption>
+                <img src="images/actuator_rw.png" alt="Simulink subsystem diagram for Actuator_RW" loading="lazy">
+                <figcaption class="figure-caption">
+                  Actuation limits follow the initialization: \(\tau_{\max}=0.01\) N m and \(\Omega_{\max}=6000\) rpm.
+                </figcaption>
               </figure>
             </article>
 
@@ -439,13 +442,14 @@
               <div class="panel-head">
                 <h4>Sensors (gyro and star tracker)</h4>
                 <p>
-                  Gyro samples at 100 Hz with white noise, bias, and bias random walk. Star tracker samples at 5 Hz and outputs a valid pulse.
-                  The estimator gates updates on this pulse.
+                  The gyro runs at 100 Hz and includes white noise, an initial bias, and a bias random walk. The star tracker runs at 5 Hz and produces a “valid” pulse, which the estimator uses to decide when to accept star tracker measurement updates.
                 </p>
               </div>
               <figure class="figure figure-tight figure-wide">
-                <img src="images/gnc/sensors.png" alt="Simulink subsystem diagram for Sensors" loading="lazy">
-                <figcaption class="figure-caption">Sampling rates follow the code: \(T_{s,\text{gyro}}=0.01\) s and \(T_{s,\text{star}}=0.2\) s.</figcaption>
+                <img src="images/sensors.png" alt="Simulink subsystem diagram for Sensors" loading="lazy">
+                <figcaption class="figure-caption">
+                  Sampling rates follow the code: \(T_{s,\text{gyro}}=0.01\) s and \(T_{s,\text{star}}=0.2\) s.
+                </figcaption>
               </figure>
             </article>
 
@@ -453,13 +457,14 @@
               <div class="panel-head">
                 <h4>Estimator (MEKF)</h4>
                 <p>
-                  Error-state EKF estimates attitude and gyro bias. Gyro propagation runs at the base rate.
-                  Star tracker updates apply when valid. This block has been the main debugging focus for quaternion sign and frame consistency.
+                  The MEKF is an error-state EKF that estimates attitude and gyro bias. Propagation runs at the base rate using the gyro, and corrections are applied only when a star-tracker measurement is marked valid.
                 </p>
               </div>
               <figure class="figure figure-tight figure-wide">
-                <img src="images/gnc/estimator_mekf.png" alt="Simulink subsystem diagram for Estimator (MEKF)" loading="lazy">
-                <figcaption class="figure-caption">MEKF structure: propagate with gyro, correct on star tracker pulses, update bias with random-walk process noise.</figcaption>
+                <img src="images/estimator_mekf.png" alt="Simulink subsystem diagram for Estimator (MEKF)" loading="lazy">
+                <figcaption class="figure-caption">
+                  MEKF structure: propagate with gyro, correct on star-tracker pulses, and estimate bias with a random-walk process model.
+                </figcaption>
               </figure>
             </article>
 
@@ -467,13 +472,14 @@
               <div class="panel-head">
                 <h4>Controller (PD detumble and tracking)</h4>
                 <p>
-                  PD law drives a log-mapped attitude error to zero while damping body rates.
-                  Gains follow a second-order target model. See the derivation section for how \(K_p\) and \(K_d\) relate to \(T_s\) and \(\zeta\).
+                  The controller uses a PD law that drives the log-mapped attitude error toward zero while damping body rates. Gains are set from a second-order target model, which ties \(K_p\) and \(K_d\) to the chosen settling time and damping ratio \(\zeta\).
                 </p>
               </div>
               <figure class="figure figure-tight figure-wide">
-                <img src="images/gnc/controller_pd_tracking.png" alt="Simulink subsystem diagram for Controller" loading="lazy">
-                <figcaption class="figure-caption">Controller uses the error quaternion, log map, and rate error to compute wheel torque commands.</figcaption>
+                <img src="images/controller_pd_tracking.png" alt="Simulink subsystem diagram for Controller" loading="lazy">
+                <figcaption class="figure-caption">
+                  The control law combines attitude error (via the log map) and rate error to produce wheel torque commands.
+                </figcaption>
               </figure>
             </article>
 
@@ -481,12 +487,14 @@
               <div class="panel-head">
                 <h4>Scenario_Command</h4>
                 <p>
-                  Sets initial tumble, selects maneuver targets, and applies disturbance torque. This block drives the Demo 3 slew sequence.
+                  This block determines the desired attitude and body rate throughout the simulation. It schedules the commanded attitude targets, and applies the disturbance torque used in the demos.
                 </p>
               </div>
               <figure class="figure figure-tight figure-wide">
-                <img src="images/gnc/scenario_command.png" alt="Simulink subsystem diagram for Scenario_Command" loading="lazy">
-                <figcaption class="figure-caption">Scenario sequencing: settle, command a new quaternion, wait for settle, then repeat.</figcaption>
+                <img src="images/scenario_command.png" alt="Simulink subsystem diagram for Scenario_Command" loading="lazy">
+                <figcaption class="figure-caption">
+                  Scenario sequencing: settle at a command, switch to the next command, settle again, and repeat.
+                </figcaption>
               </figure>
             </article>
 
@@ -494,13 +502,14 @@
               <div class="panel-head">
                 <h4>Orbit_Propagator</h4>
                 <p>
-                  Propagates spacecraft position and velocity for visualization and context. It does not feed back into the attitude loop.
-                  The initialization sets \(p_0=[0,6878137,0]^T\) and \(v_0=[-7612.608,0,0]^T\) with units noted in the MATLAB comments.
+                  This subsystem propagates position and velocity for visualization and context, but it does not feed back into the attitude loop. The run initializes with \(p_0=[0,6878137,0]^T\) and \(v_0=[-7612.608,0,0]^T\).
                 </p>
               </div>
               <figure class="figure figure-tight figure-wide">
-                <img src="images/gnc/orbit_propagator.png" alt="Simulink subsystem diagram for Orbit_Propagator" loading="lazy">
-                <figcaption class="figure-caption">Orbit propagation supports camera placement and scene motion. Attitude dynamics remain body-frame rigid-body dynamics.</figcaption>
+                <img src="images/orbit_propagator.png" alt="Simulink subsystem diagram for Orbit_Propagator" loading="lazy">
+                <figcaption class="figure-caption">
+                  Orbit propagation for scene motion; attitude control remains a separate rigid-body loop.
+                </figcaption>
               </figure>
             </article>
           </section>
